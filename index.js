@@ -9,20 +9,6 @@ const app = express();
 // Mock user database
 const users = [];
 
-// Passport GitHub strategy
-passport.use(
-    new GitHubStrategy(
-        {
-            clientID: "Iv23liEPnHdy1pbjTft2",
-            clientSecret: "fc35298ad69fe8574f59790e10e56c3454c043ef",
-            callbackURL: "http://localhost:3000/auth/github/callback",
-        },
-        (accessToken, refreshToken, profile, done) => {
-            
-        }
-    )
-);
-
 // Session configuration
 app.use(
     session({
@@ -31,18 +17,6 @@ app.use(
         saveUninitialized: false,
     })
 );
-
-// Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Serialize and deserialize user
-passport.serializeUser((user, done) => {
-    
-});
-passport.deserializeUser((id, done) => {
-    
-});
 
 // Set view engine
 app.set("view engine", "ejs");
@@ -54,13 +28,18 @@ app.get("/", (request, response) => {
     response.render("index", { user: request.user });
 });
 
-app.get("/profile", (request, response) => {
-    if (!request.isAuthenticated()) {
-        response.redirect("/");
-    }
+app.get("/profile", ensureAuthenticated, (request, response) => {
     response.render("profile", { user: request.user });
 });
 
+app.get("/logout", (request, response) => {
+    request.logout((error) => {
+        if (error) {
+            return next(error);
+        }
+        response.redirect("/");
+    });
+});
 // Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
